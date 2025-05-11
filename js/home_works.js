@@ -111,3 +111,61 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+//// CHARACTERS.JSON
+document.addEventListener("DOMContentLoaded", () => {
+    const list = document.querySelector('.characters-list');
+
+    fetch('../data/characters.json')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            data.forEach(character => {
+                const card = document.createElement('div');
+                card.classList.add('character-card');
+
+                card.innerHTML = `
+                    <div class="character-photo">
+                        <img src="${character.image}" alt="${character.name}">
+                    </div>
+                    <h3>${character.name}</h3>
+                    <p><strong>Возраст:</strong> ${character.age}</p>
+                    <p><strong>Рекорд:</strong> ${character.record}</p>
+                    <p><strong>Позиция:</strong> ${character.title}</p>
+                `;
+
+                list.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("Ошибка при загрузке персонажей:", error);
+        });
+});
+
+
+
+//// ANY.JSON
+const xhr = new XMLHttpRequest();
+
+xhr.open('GET', '../data/any.json', true);  // Путь к файлу data/any.json
+
+xhr.onload = function() {
+    if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+
+        console.log('Информация о Темиркулове Шертегине:');
+        console.log(`Имя: ${data.name}`);
+        console.log(`Возраст: ${data.age} лет`);
+        console.log(`Рост: ${data.height}`);
+        console.log(`Вес: ${data.weight}`);
+        console.log(`Степень: ${data.degree}`);
+        console.log(`Хобби: ${data.hobbies.join(', ')}`);
+    } else {
+        console.error('Ошибка при загрузке данных: ', xhr.statusText);
+    }
+};
+
+xhr.onerror = function() {
+    console.error('Запрос не удался');
+};
+
+xhr.send();

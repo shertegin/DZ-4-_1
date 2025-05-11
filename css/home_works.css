@@ -214,6 +214,8 @@
     flex-direction: column;
     gap: 10px;
     text-align: center;
+    background-color: #333;
+    color: #fff;
 }
 
 .character-photo {
