@@ -58,3 +58,61 @@ setInterval(() => {
     currentIndex = (currentIndex + 1) % tabContentBlocks.length;
     showTabContent(currentIndex);
 }, 3000);
+
+
+
+//// CONVERTER
+
+const somInput = document.querySelector('#som');
+const usdInput = document.querySelector('#usd');
+const cnyInput = document.querySelector('#cny');
+
+const converter = (element, other1, rate1, other2, rate2) => {
+    element.oninput = () => {
+        const request = new XMLHttpRequest();
+        request.open('GET', '../data/converter.json');
+        request.setRequestHeader('Content-type', 'application/json');
+        request.send();
+
+        request.onload = () => {
+            const data = JSON.parse(request.response);
+            const value = parseFloat(element.value);
+
+            if (!value) {
+                other1.value = '';
+                other2.value = '';
+                return;
+            }
+
+            let som;
+
+            if (element.id === 'som') {
+                som = value;
+            } else if (element.id === 'usd') {
+                som = value * data.usd;
+            } else if (element.id === 'cny') {
+                som = value * data.cny;
+            }
+
+            if (other1.id === 'usd') {
+                other1.value = (som / data.usd).toFixed(2);
+            } else if (other1.id === 'cny') {
+                other1.value = (som / data.cny).toFixed(2);
+            } else if (other1.id === 'som') {
+                other1.value = som.toFixed(2);
+            }
+
+            if (other2.id === 'usd') {
+                other2.value = (som / data.usd).toFixed(2);
+            } else if (other2.id === 'cny') {
+                other2.value = (som / data.cny).toFixed(2);
+            } else if (other2.id === 'som') {
+                other2.value = som.toFixed(2);
+            }
+        }
+    }
+}
+
+converter(somInput, usdInput, 'usd', cnyInput, 'cny');
+converter(usdInput, somInput, 'som', cnyInput, 'cny');
+converter(cnyInput, somInput, 'som', usdInput, 'usd');
