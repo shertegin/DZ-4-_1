@@ -116,3 +116,52 @@ const converter = (element, other1, rate1, other2, rate2) => {
 converter(somInput, usdInput, 'usd', cnyInput, 'cny');
 converter(usdInput, somInput, 'som', cnyInput, 'cny');
 converter(cnyInput, somInput, 'som', usdInput, 'usd');
+
+
+
+////// CARD SWITCHER
+
+const cardBlock = document.querySelector('.card');
+const btnNext   = document.querySelector('#btn-next');
+const btnPrev   = document.querySelector('#btn-prev');
+
+const MAX_ID = 200;
+let   cardId = 1;
+
+function loadCard(id) {
+    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`)
+        .then(res => res.json())
+        .then(({ title, completed }) => {
+            cardBlock.innerHTML = `
+        <p>${title}</p>
+        <p style="color:${completed ? 'green' : 'red'}">${completed}</p>
+        <span>${id}</span>`;
+        })
+        .catch(() => {
+            cardBlock.innerHTML = '<p style="color:red">Ошибка загрузки</p>';
+        });
+}
+
+const nextId = id => (id % MAX_ID) + 1;
+const prevId = id => (id - 2 + MAX_ID) % MAX_ID + 1;
+
+btnNext.addEventListener('click', () => {
+    cardId = nextId(cardId);
+    loadCard(cardId);
+});
+
+btnPrev.addEventListener('click', () => {
+    cardId = prevId(cardId);
+    loadCard(cardId);
+});
+
+loadCard(cardId);
+
+
+
+//// fetch в console
+
+fetch('https://jsonplaceholder.typicode.com/posts')
+    .then(res => res.json())
+    .then(posts => console.log(posts))
+    .catch(err => console.error(err));
