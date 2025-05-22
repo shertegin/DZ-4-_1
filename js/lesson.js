@@ -4,26 +4,36 @@ const phoneInput = document.querySelector("#phone_input");
 const phoneButton = document.querySelector("#phone_button");
 const phoneResult = document.querySelector("#phone_result");
 
-const regExp = /^\+996 [2579]\d{2} \d{2}-\d{2}-\d{2}$/
+const regExp = /^\+996 [2579]\d{2} \d{2}-\d{2}-\d{2}$/;
 
-phoneButton.onclick = () => {
-    if (regExp.test(phoneInput.value)) {
-        phoneResult.innerHTML = "SAVE";
-        phoneResult.style.color = "green";
-    } else {
-        phoneResult.innerHTML = "ERROR";
+phoneButton.addEventListener('click', () => {
+    try {
+        if (regExp.test(phoneInput.value.trim())) {
+            phoneResult.textContent = "SAVE";
+            phoneResult.style.color = "green";
+        } else {
+            phoneResult.textContent = "ERROR";
+            phoneResult.style.color = "red";
+        }
+    } catch (error) {
+        console.error('Ошибка валидации телефона:', error);
+        phoneResult.textContent = "ERROR";
         phoneResult.style.color = "red";
     }
-}
+});
+
 
 
 //// TAB SLIDER
+
 const tabContentBlocks = document.querySelectorAll('.tab_content_block');
 const tabs = document.querySelectorAll('.tab_content_item');
 const tabsParent = document.querySelector('.tab_content_items');
 
+let currentIndex = 0;
+
 const hideTabContent = () => {
-    tabContentBlocks.forEach((item) => {
+    tabContentBlocks.forEach(item => {
         item.style.display = "none";
     });
     tabs.forEach(tab => {
@@ -32,32 +42,45 @@ const hideTabContent = () => {
 };
 
 const showTabContent = (index = 0) => {
+    if (index < 0 || index >= tabContentBlocks.length) {
+        console.error('showTabContent: индекс вне диапазона');
+        return;
+    }
     tabContentBlocks[index].style.display = 'block';
     tabs[index].classList.add('tab_content_item_active');
 };
 
-hideTabContent();
-showTabContent();
+const initTabs = () => {
+    try {
+        hideTabContent();
+        showTabContent(currentIndex);
 
-tabsParent.onclick = (event) => {
-    if (event.target.classList.contains('tab_content_item')) {
-        tabs.forEach((tab, tabIndex) => {
-            if (event.target === tab) {
-                hideTabContent();
-                showTabContent(tabIndex);
-                currentIndex = tabIndex;
+        tabsParent.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('tab_content_item')) {
+                tabs.forEach((tab, index) => {
+                    if (target === tab) {
+                        hideTabContent();
+                        showTabContent(index);
+                        currentIndex = index;
+                    }
+                });
             }
         });
+
+        setInterval(() => {
+            hideTabContent();
+            currentIndex = (currentIndex + 1) % tabContentBlocks.length;
+            showTabContent(currentIndex);
+        }, 3000);
+
+    } catch (error) {
+        console.error('Ошибка инициализации табов:', error);
     }
 };
 
-let currentIndex = 0;
+initTabs();
 
-setInterval(() => {
-    hideTabContent();
-    currentIndex = (currentIndex + 1) % tabContentBlocks.length;
-    showTabContent(currentIndex);
-}, 3000);
 
 
 
@@ -68,14 +91,13 @@ const usdInput = document.querySelector('#usd');
 const cnyInput = document.querySelector('#cny');
 
 const converter = (element, other1, rate1, other2, rate2) => {
-    element.oninput = () => {
-        const request = new XMLHttpRequest();
-        request.open('GET', '../data/converter.json');
-        request.setRequestHeader('Content-type', 'application/json');
-        request.send();
-
-        request.onload = () => {
-            const data = JSON.parse(request.response);
+    element.oninput = async () => {
+        try {
+            const response = await fetch('../data/converter.json');
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки курса валют');
+            }
+            const data = await response.json();
             const value = parseFloat(element.value);
 
             if (!value) {
@@ -94,24 +116,26 @@ const converter = (element, other1, rate1, other2, rate2) => {
                 som = value * data.cny;
             }
 
-            if (other1.id === 'usd') {
-                other1.value = (som / data.usd).toFixed(2);
-            } else if (other1.id === 'cny') {
-                other1.value = (som / data.cny).toFixed(2);
-            } else if (other1.id === 'som') {
-                other1.value = som.toFixed(2);
-            }
+            const setValue = (input) => {
+                if (input.id === 'usd') {
+                    input.value = (som / data.usd).toFixed(2);
+                } else if (input.id === 'cny') {
+                    input.value = (som / data.cny).toFixed(2);
+                } else if (input.id === 'som') {
+                    input.value = som.toFixed(2);
+                }
+            };
 
-            if (other2.id === 'usd') {
-                other2.value = (som / data.usd).toFixed(2);
-            } else if (other2.id === 'cny') {
-                other2.value = (som / data.cny).toFixed(2);
-            } else if (other2.id === 'som') {
-                other2.value = som.toFixed(2);
-            }
+            setValue(other1);
+            setValue(other2);
+
+        } catch (error) {
+            console.error('Ошибка конвертации:', error);
+            other1.value = '';
+            other2.value = '';
         }
-    }
-}
+    };
+};
 
 converter(somInput, usdInput, 'usd', cnyInput, 'cny');
 converter(usdInput, somInput, 'som', cnyInput, 'cny');
@@ -119,27 +143,33 @@ converter(cnyInput, somInput, 'som', usdInput, 'usd');
 
 
 
+
 ////// CARD SWITCHER
 
 const cardBlock = document.querySelector('.card');
-const btnNext   = document.querySelector('#btn-next');
-const btnPrev   = document.querySelector('#btn-prev');
+const btnNext = document.querySelector('#btn-next');
+const btnPrev = document.querySelector('#btn-prev');
 
 const MAX_ID = 200;
-let   cardId = 1;
+let cardId = 1;
 
-function loadCard(id) {
-    fetch(`https://jsonplaceholder.typicode.com/todos/${id}`)
-        .then(res => res.json())
-        .then(({ title, completed }) => {
-            cardBlock.innerHTML = `
-        <p>${title}</p>
-        <p style="color:${completed ? 'green' : 'red'}">${completed}</p>
-        <span>${id}</span>`;
-        })
-        .catch(() => {
-            cardBlock.innerHTML = '<p style="color:red">Ошибка загрузки</p>';
-        });
+async function loadCard(id) {
+    try {
+        const res = await fetch(`https://jsonplaceholder.typicode.com/todos/${id}`);
+        if (!res.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const { title, completed } = await res.json();
+
+        cardBlock.innerHTML = `
+            <p>${title}</p>
+            <p style="color:${completed ? 'green' : 'red'}">${completed}</p>
+            <span>${id}</span>
+        `;
+    } catch (error) {
+        cardBlock.innerHTML = '<p style="color:red">Ошибка загрузки</p>';
+        console.error('Ошибка при загрузке карточки:', error);
+    }
 }
 
 const nextId = id => (id % MAX_ID) + 1;
@@ -165,3 +195,31 @@ fetch('https://jsonplaceholder.typicode.com/posts')
     .then(res => res.json())
     .then(posts => console.log(posts))
     .catch(err => console.error(err));
+
+
+
+//// WEATHER
+const searchInput = document.querySelector('.cityName')
+const searchButton = document.querySelector('#search')
+const city = document.querySelector('.city')
+const temp = document.querySelector('.temp')
+
+const BASE_API = 'http://api.openweathermap.org/data/2.5/weather'
+const API_KEY = 'e417df62e04d3b1b111abeab19cea714'
+
+searchButton.onclick = async () => {
+    try {
+        if (searchInput.value !== '') {
+            const response = await fetch(`${BASE_API}?q=${searchInput.value}&units=metric&lang=ru&appid=${API_KEY}`)
+            const data = await response.json()
+            city.innerHTML = data.name || 'Город не найден...'
+            temp.innerHTML = Math.round(data.main.temp) + '&deg;C'
+            searchInput.value = ''
+        } else {
+            city.innerHTML = 'Введите город'
+            temp.innerHTML = ''
+        }
+    } catch (e) {
+        console.log(e)
+    }
+}

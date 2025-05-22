@@ -1,0 +1,73 @@
+body {
+    font-family: "Britannic Bold", sans-serif;
+    background: linear-gradient(to bottom, #0f0f0f, #2c2c2c); /* плавный тёмный градиент */
+    color: white;
+}
+
+.header {
+    position: relative;
+    z-index: 1;
+}
+
+main {
+    position: relative;
+    z-index: 2;
+}
+
+
+#card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 40px 0;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: var(--black);
+    border: 2px solid var(--orange);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid var(--orange);
+}
+
+.card h3 {
+    font-size: 24px;
+    color: var(--orange);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.card p {
+    font-size: 18px;
+    color: white;
+    line-height: 1.4;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+footer {
+    background: var(--black);
+    color: var(--orange);
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    font-size: 18px;
+    border-top: 2px solid var(--orange);
+}
